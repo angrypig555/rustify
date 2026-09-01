@@ -1,6 +1,6 @@
 use std::{env, io};
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 
 const WARN: &str = "[\x1b[33mWARN\x1b[0m]";
 const OK: &str = "[\x1b[32mOK\x1b[0m]";
@@ -36,7 +36,7 @@ fn main() -> io::Result<()>{
             }
             "int main() {" => {
                 println!("{OK} Found main function");
-                writeln!(file_rs, "fn main() {");
+                writeln!(file_rs, "fn main() {{")?;
             }
             _ => {
                 println!("{WARN} Unknown function detected, skipping");
