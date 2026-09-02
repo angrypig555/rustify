@@ -28,18 +28,95 @@ fn main() -> io::Result<()>{
     println!("{OK} Created file {}", &args[2]);
     let file_cc = BufReader::new(file_raw);
     let mut file_rs = BufWriter::new(file_rs_raw);
+    writeln!(file_rs, "// Automatically converted from C++ using rustify; https://github.com/angrypig555/rustify")?;
     for (num, line) in file_cc.lines().enumerate() {
         let data = line?;
-        match data.as_str() {
-            "#include <iostream>" => {
-                println!("{OK} File imports iostream, nothing to do");
+        let mut words_iter = data.split_whitespace();
+
+        let Some(first_word) = words_iter.next() else {
+            continue;
+        };
+        //let words: Vec<&str> = words_iter.collect();
+        match first_word {
+            "#include" => {
+                match words_iter.next() {
+                    Some("<iostream>") => {
+                        println!("{OK} File imports iostream, nothing to do")
+                    }
+                    Some(library) => {
+                        println!("{FAIL} File imports unknown library, requires manual intervention");
+                        writeln!(file_rs, "// IMPORT OF UNKNOWN LIBRARY {}", library)?;
+                    }
+                    _ => {
+                        println!("{FAIL} #include missing library name");
+                        writeln!(file_rs, "// MALFORMED C++ CODE {}", data)?;
+                    }
+                }
+                
             }
-            "int main() {" => {
-                println!("{OK} Found main function");
-                writeln!(file_rs, "fn main() {{")?;
+            "int" => {
+                println!("{OK} Found integer");
+                match words_iter.next() {
+                    Some(name) => {
+                        if name.contains("()") {
+                            println!("{OK} Function named {}", name);
+                            writeln!(file_rs, "fn {} {{", name)?;
+                        } else {
+                            println!("{OK} Integer named {}", name);
+                            write!(file_rs, "let mut {}", name)?;
+                            match words_iter.next() {
+                                Some(operation) => {
+                                    write!(file_rs, " {} ", operation)?;
+                                    match words_iter.next() {
+                                        Some(value) => {
+                                            println!("{OK} Value of {} is {}", name, value);
+                                            writeln!(file_rs, "{}", value)?;
+                                        }
+                                        None => {
+                                            println!("{FAIL} Integer has name and operation but no value");
+                                            writeln!(file_rs, "// INTEGER int {} {} HAS NO VALUE", name, operation)?;
+                                        }
+                                    }
+                                }
+                                None => {
+                                    println!("{FAIL} Integer name was declared but operation was not");
+                                    writeln!(file_rs, "// INTEGER {} HAS NO OPERATION", name)?;
+                                }
+                            }
+                        }
+                    }
+                    None => {
+                        println!("{FAIL} Integer has no name");
+                        writeln!(file_rs, "// INTEGER HAS NO NAME BUT WAS DECLARED IN C++")?;
+                    }
+                }
+            }
+            "return" => {
+                println!("{OK} Return statement");
+                write!(file_rs, "return ")?;
+                match words_iter.next() {
+                    Some(code) => {
+                        println!("{OK} Return statement has a value of {}", code);
+                        if !code.contains(";") {
+                            println!("{WARN} Return statement didnt contain semicolon at the end");
+                            writeln!(file_rs, "{};", code)?;
+                        } else {
+                            writeln!(file_rs, "{}", code)?;
+                        }
+                    }
+                    None => {
+                        println!("{FAIL} Return statement has no value");
+                        writeln!(file_rs, "// RETURN STATEMENT HAS NO VALUE: {}", data)?;
+                    }
+                }
+            }
+            "}" => {
+                println!("{OK} Closing brace");
+                writeln!(file_rs, "}}")?;
             }
             _ => {
-                println!("{WARN} Unknown function detected, skipping");
+                println!("{WARN} Unknown keyword detected, requires manual intervention");
+                writeln!(file_rs, "// UNKNOWN KEYWORD {}", data)?;
             }
         }
     }
