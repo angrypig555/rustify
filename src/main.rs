@@ -80,13 +80,13 @@ fn main() -> io::Result<()>{
                                         } // if it has an operation but no value for some reason, it comments in the code
                                         None => {
                                             println!("{FAIL} Integer has name and operation but no value");
-                                            writeln!(file_rs, "compile_error!(\"INTEGER int {} {} HAS NO VALUE\")", name, operation)?;
+                                            writeln!(file_rs, "compile_error!(r#\"INTEGER int {} {} HAS NO VALUE\"#);", name, operation)?;
                                         }
                                     }
                                 }
                                 None => { // if the operation and value are missing, it writes a comment in the code
                                     println!("{FAIL} Integer name was declared but operation was not");
-                                    writeln!(file_rs, "compile_error!(\"INTEGER {} HAS NO OPERATION\")", name)?;
+                                    writeln!(file_rs, "compile_error!(r#\"INTEGER {} HAS NO OPERATION\"#);", name)?;
                                 }
                             }
                         }
@@ -121,7 +121,7 @@ fn main() -> io::Result<()>{
                     }
                     None => { // if it has no value it comments in the code
                         println!("{FAIL} Return statement has no value");
-                        writeln!(file_rs, "compile_error!(\"RETURN STATEMENT HAS NO VALUE: {}\")", data)?;
+                        writeln!(file_rs, "compile_error!(r#\"RETURN STATEMENT HAS NO VALUE: {}\"#);", data)?;
                     }
                 }
             }
@@ -139,7 +139,7 @@ fn main() -> io::Result<()>{
             }
             _ => { // if there is an unknown keyword (not implemented yet or misspelled) we leave a comment in the code
                 println!("{WARN} Unknown keyword detected, requires manual intervention");
-                writeln!(file_rs, "compile_error!(\"UNKNOWN KEYWORD {}\")", data)?;
+                writeln!(file_rs, "compile_error!(r#\"UNKNOWN KEYWORD {}\"#);", data)?;
             }
         }
     }
