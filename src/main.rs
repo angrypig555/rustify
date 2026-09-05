@@ -9,7 +9,6 @@ const OK: &str = "[\x1b[32mOK\x1b[0m]";
 const FAIL: &str = "[\x1b[31mFAIL\x1b[0m]";
 
 // TODO:
-// 1. Change comments regarding errors in the code to compile errors
 // 2. when detecting specific keywords, set a boolean to true that signifies that it requires a library
 
 fn main() -> io::Result<()>{
@@ -128,6 +127,10 @@ fn main() -> io::Result<()>{
             "}" => { // no need for error checking here because its just a closing brace
                 println!("{OK} Closing brace");
                 writeln!(file_rs, "}}")?;
+            }
+            "std::vector<std::string>" => {
+                println!("{OK} Found vector");
+                // TODO finish vector
             }
             "//" => { // again, no error checking for comments becasue there is nothing to check for
                 println!("{OK} Found comment");
