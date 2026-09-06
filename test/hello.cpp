@@ -12,10 +12,11 @@ int testfunc2() {
 
 // our main function
 int main() {
-    std::vector<std::string> colours = {"red", "green", "blue"}; 
+    //std::vector<std::string> colours = {"red", "green", "blue"}; 
     // declare some variables
     int foo = 1;
     int bar = 2;
+    testfunc();
     // print some text
     std::cout << "Hello World" << std::endl;
     if (bar == 1) {

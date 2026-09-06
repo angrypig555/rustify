@@ -1,7 +1,9 @@
+use std::hash::Hash;
 use std::{env, io};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::process::Command;
+use std::collections::HashSet;
 
 // declare colored status indicators
 const WARN: &str = "[\x1b[33mWARN\x1b[0m]";
@@ -34,6 +36,7 @@ fn main() -> io::Result<()>{
     let file_cc = BufReader::new(file_raw);
     let mut file_rs = BufWriter::new(file_rs_raw); // setup bufreader/bufwriter for easiear reading and writing
     writeln!(file_rs, "// Automatically converted from C++ using rustify; https://github.com/angrypig555/rustify\nuse std::process::ExitCode;")?;
+    let mut functions: HashSet<String> = HashSet::new();
     for (num, line) in file_cc.lines().enumerate() { // read the c++ code line by line
         let data = line?;
         let mut words_iter = data.split_whitespace(); // collect the words inside the line
@@ -76,6 +79,8 @@ fn main() -> io::Result<()>{
                                         Some(value) => {
                                             println!("{OK} Value of {} is {}", name, value);
                                             writeln!(file_rs, "{}", value)?;
+                                            let clean_text = name.replace(['(', ')'], "");
+                                            functions.insert(clean_text);
                                         } // if it has an operation but no value for some reason, it comments in the code
                                         None => {
                                             println!("{FAIL} Integer has name and operation but no value");
@@ -141,8 +146,15 @@ fn main() -> io::Result<()>{
                 write!(file_rs, "\n")?;
             }
             _ => { // if there is an unknown keyword (not implemented yet or misspelled) we leave a comment in the code
-                println!("{WARN} Unknown keyword detected, requires manual intervention");
-                writeln!(file_rs, "compile_error!(r#\"UNKNOWN KEYWORD {}\"#);", data)?;
+                // check if its a function
+                let func_name = first_word.trim_end_matches(';').trim_end_matches("()");
+                if functions.contains(func_name) {
+                    println!("{OK} Found function call {}", func_name);
+                    writeln!(file_rs, "{}();", func_name)?;
+                } else {
+                    println!("{WARN} Unknown keyword detected, requires manual intervention");
+                    writeln!(file_rs, "compile_error!(r#\"UNKNOWN KEYWORD {}\"#);", data)?;
+                }
             }
         }
     }
