@@ -49,7 +49,11 @@ fn main() -> io::Result<()>{
             "#include" => {
                 match words_iter.next() {
                     Some("<iostream>") => {
-                        println!("{OK} File imports iostream, nothing to do")
+                        println!("{OK} File imports <iostream>, nothing to do");
+                    }
+                    Some("<vector>") => {
+                        println!("{OK} File imports <vector>, adding to imports");
+                        writeln!(file_rs, "use std::vec::Vec;")?;
                     }
                     Some(library) => { // add comment if the library is unkown
                         println!("{FAIL} File imports unknown library, requires manual intervention");
@@ -71,7 +75,7 @@ fn main() -> io::Result<()>{
                             writeln!(file_rs, "fn {} -> ExitCode {{", name)?;
                         } else { // if its an integer we check for the operation
                             println!("{OK} Integer named {}", name);
-                            write!(file_rs, "let mut {}", name)?;
+                            write!(file_rs, "let mut {}: i64", name)?;
                             match words_iter.next() {
                                 Some(operation) => {
                                     write!(file_rs, " {} ", operation)?;
@@ -114,6 +118,123 @@ fn main() -> io::Result<()>{
                     }
                 }
             }
+            "bool" => { // handling bool / functions returning bools (reused code, may contain comments that are irrelevant)
+                println!("{OK} Found integer");
+                match words_iter.next() {
+                    Some(name) => { // check if its a function or an bool
+                        if name.contains("()") {
+                            println!("{OK} Function named {}", name);
+                            writeln!(file_rs, "fn {} -> bool {{", name)?;
+                        } else { // if its a bool we check for the operation
+                            println!("{OK} Boolean named {}", name);
+                            write!(file_rs, "let mut {}: bool", name)?;
+                            match words_iter.next() {
+                                Some(operation) => {
+                                    write!(file_rs, " {} ", operation)?;
+                                    match words_iter.next() {
+                                        Some(value) => {
+                                            println!("{OK} Value of {} is {}", name, value);
+                                            writeln!(file_rs, "{}", value)?;
+                                            let clean_text = name.replace(['(', ')'], "");
+                                            functions.insert(clean_text);
+                                        } // if it has an operation but no value for some reason, it comments in the code
+                                        None => {
+                                            println!("{FAIL} Integer has name and operation but no value");
+                                            writeln!(file_rs, "compile_error!(r#\"BOOLEAN bool {} {} HAS NO VALUE\"#);", name, operation)?;
+                                        }
+                                    }
+                                }
+                                None => { // if the operation and value are missing, it writes a comment in the code
+                                    println!("{FAIL} Boolean name was declared but operation was not");
+                                    writeln!(file_rs, "compile_error!(r#\"BOOLEAN {} HAS NO OPERATION\"#);", name)?;
+                                }
+                            }
+                        }
+                    }
+                    None => { // if the integer has no name (e.g just "int") then it puts a comment in the code, may possibly change these later on to a compile error
+                        println!("{FAIL} Integer has no name");
+                        writeln!(file_rs, "compile_error!(\"BOOLEAN HAS NO NAME BUT WAS DECLARED IN C++\")")?;
+                    }
+                }
+            }
+            "double" => { // handling double / functions returning double (reused code, may contain comments that are irrelevant)
+                println!("{OK} Found double");
+                match words_iter.next() {
+                    Some(name) => { // check if its a function or an double
+                        if name.contains("()") {
+                            println!("{OK} Function named {}", name);
+                            writeln!(file_rs, "fn {} -> f64 {{", name)?;
+                        } else { // if its a bool we check for the operation
+                            println!("{OK} Double named {}", name);
+                            write!(file_rs, "let mut {}: f64", name)?;
+                            match words_iter.next() {
+                                Some(operation) => {
+                                    write!(file_rs, " {} ", operation)?;
+                                    match words_iter.next() {
+                                        Some(value) => {
+                                            println!("{OK} Value of {} is {}", name, value);
+                                            writeln!(file_rs, "{}", value)?;
+                                            let clean_text = name.replace(['(', ')'], "");
+                                            functions.insert(clean_text);
+                                        } // if it has an operation but no value for some reason, it comments in the code
+                                        None => {
+                                            println!("{FAIL} Integer has name and operation but no value");
+                                            writeln!(file_rs, "compile_error!(r#\"DOUBLE double {} {} HAS NO VALUE\"#);", name, operation)?;
+                                        }
+                                    }
+                                }
+                                None => { // if the operation and value are missing, it writes a comment in the code
+                                    println!("{FAIL} Boolean name was declared but operation was not");
+                                    writeln!(file_rs, "compile_error!(r#\"INTEGER {} HAS NO OPERATION\"#);", name)?;
+                                }
+                            }
+                        }
+                    }
+                    None => { // if the integer has no name (e.g just "int") then it puts a comment in the code, may possibly change these later on to a compile error
+                        println!("{FAIL} Integer has no name");
+                        writeln!(file_rs, "compile_error!(\"DOUBLE HAS NO NAME BUT WAS DECLARED IN C++\")")?;
+                    }
+                }
+            }
+            "float" => { // handling float / functions returning float (reused code, may contain comments that are irrelevant)
+                println!("{OK} Found float");
+                match words_iter.next() {
+                    Some(name) => { // check if its a function or an float
+                        if name.contains("()") {
+                            println!("{OK} Function named {}", name);
+                            writeln!(file_rs, "fn {} -> f32 {{", name)?;
+                        } else { // if its a bool we check for the operation
+                            println!("{OK} Float named {}", name);
+                            write!(file_rs, "let mut {}: f32", name)?;
+                            match words_iter.next() {
+                                Some(operation) => {
+                                    write!(file_rs, " {} ", operation)?;
+                                    match words_iter.next() {
+                                        Some(value) => {
+                                            println!("{OK} Value of {} is {}", name, value);
+                                            writeln!(file_rs, "{}", value)?;
+                                            let clean_text = name.replace(['(', ')'], "");
+                                            functions.insert(clean_text);
+                                        } // if it has an operation but no value for some reason, it comments in the code
+                                        None => {
+                                            println!("{FAIL} Float has name and operation but no value");
+                                            writeln!(file_rs, "compile_error!(r#\"FLOAT float {} {} HAS NO VALUE\"#);", name, operation)?;
+                                        }
+                                    }
+                                }
+                                None => { // if the operation and value are missing, it writes a comment in the code
+                                    println!("{FAIL} Float name was declared but operation was not");
+                                    writeln!(file_rs, "compile_error!(r#\"FLOAT {} HAS NO OPERATION\"#);", name)?;
+                                }
+                            }
+                        }
+                    }
+                    None => { // if the integer has no name (e.g just "int") then it puts a comment in the code, may possibly change these later on to a compile error
+                        println!("{FAIL} Integer has no name");
+                        writeln!(file_rs, "compile_error!(\"FLOAT HAS NO NAME BUT WAS DECLARED IN C++\")")?;
+                    }
+                }
+            }
             "return" => { // handles the return statement
                 println!("{OK} Return statement");
                 write!(file_rs, "return ")?;
@@ -151,18 +272,19 @@ fn main() -> io::Result<()>{
                 if functions.contains(func_name) {
                     println!("{OK} Found function call {}", func_name);
                     writeln!(file_rs, "{}();", func_name)?;
-                } else {
+                } else { // this may happen often
                     println!("{WARN} Unknown keyword detected, requires manual intervention");
                     writeln!(file_rs, "compile_error!(r#\"UNKNOWN KEYWORD {}\"#);", data)?;
                 }
             }
         }
     }
+    // flush buffer so file is written
     file_rs.flush()?;
-    println!("{OK} Compiling converted code...");
+    println!("{OK} Compiling converted code..."); // compile the code
     let out_dir = std::path::Path::new(&args[2])
         .parent()
-        .unwrap_or(std::path::Path::new("."));
+        .unwrap_or(std::path::Path::new(".")); // call rustc, should work on any platforms
     let output = Command::new("rustc")
         .args([format!("{}", &args[2]), "--out-dir".to_string(), format!("{}", out_dir.display())])
         .status()?;
