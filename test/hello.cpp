@@ -1,14 +1,14 @@
 #include <iostream>
 #include <vector>
 
-void testfunc() {
-    std::cout << "this is a test void function" << std::endl;
-}
+//  void testfunc() {
+//  std::cout << "this is a test void function" << std::endl;
+//  }
 
-void testfunc2() {
-    int baz = 3;
-    std::cout << "look at this number: " << baz << std::endl;
-}
+//  void testfunc2() {
+//  int baz = 3;
+//  std::cout << "look at this number: " << baz << std::endl;
+//  }
 
 // our main function
 int main() {
@@ -20,9 +20,10 @@ int main() {
     bool testbool2 = false;
     float testfloat = 1.23;
     double testdouble = 1.23;
-    testfunc();
+// testfunc();
 // print some text
-    std::cout << "Hello World" << std::endl;
+    std::cout << "Hello_World" << std::endl;
+    std::cout << "This_Is_The_Output_Of_The_Converted_Code";
 // if (bar == 1) { (not yet implemented)
 //    std::cout << "bar equals 1" << std::endl;
 // }

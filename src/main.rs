@@ -266,6 +266,46 @@ fn main() -> io::Result<()>{
                 }
                 write!(file_rs, "\n")?;
             }
+            "std::cout" => {
+                println!("{OK} Found std::cout");
+                match words_iter.next() {
+                    Some(bwright) => {
+                        println!("{OK} Found >>");
+                        write!(file_rs, "println!(")?;
+                        match words_iter.next() {
+                            Some(text_to_print_r) => {
+                                let text_to_print = text_to_print_r.trim_end_matches(";");
+                                println!("{OK} cout statement prints {}", text_to_print);
+                                write!(file_rs, "{});", text_to_print)?;
+                                match words_iter.next() {
+                                    Some(bwright2) => {
+                                        println!("{OK} Found >>");
+                                        match words_iter.next() {
+                                            Some(endl) => {
+                                                println!("{OK} Found endl");
+                                            }
+                                            None => {
+                                                println!("{WARN} Endl was not found, assuming it was meant to be there");
+                                            }
+                                        }
+                                    }
+                                    None => {
+                                        println!("{WARN} Found no >>, automatically putting in endl");
+                                    }
+                                }
+                            }
+                            None => {
+                                println!("{FAIL} Incomplete cout statement");
+                                write!(file_rs, "invalid cout statement here\");\n")?;
+                            }
+                        }
+                    }
+                    None => {
+                        println!("{FAIL} Invalid cout statement");
+                        writeln!(file_rs, "compile_error!(\"Invalid cout statement\")")?;
+                    }
+                }
+            }
             _ => { // if there is an unknown keyword (not implemented yet or misspelled) we leave a comment in the code
                 // check if its a function
                 let func_name = first_word.trim_end_matches(';').trim_end_matches("()");
